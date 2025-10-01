@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.env
+
+# Builds
+*.apk
+*.exe
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
