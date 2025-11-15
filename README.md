@@ -1,50 +1,152 @@
-# Distributed Two-Person Battleship Game System
+# Distributed Two-Player Battleship Game System
 
-A simple, turn-based two-player Battleship game implemented with a distributed microservices architecture. Players take turns placing ships and firing shots on a 5x5 grid. Focus: Microservices (HTTP inter-comms) + WebSockets (real-time updates like "shot fired" or "ship hit"). Data stored in-memory (no DB). Single GitHub monorepo for all components.
+A **real-time, distributed Battleship game** built with **microservices**, **HTTP**, and **WebSocket** — **no database**, **in-memory state**, **3 clients**, **full architecture**.
 
-## Technology Summary (My Choices)
-- **User Service**: Python 3 + Flask (Port 3001) - Handles simple username-based login/registration with in-memory dict storage.
-- **Room Service**: Python 3 + Flask + Requests library (Port 3002) - Manages room creation, player joining, and status checks; calls User Service via HTTP.
-- **Game Rules Service**: Python 3 + Flask + Flask-SocketIO (Port 3003) - Enforces Battleship logic (ship placement, move validation, win conditions like all ships sunk); broadcasts real-time updates via WebSocket.
-- **CLI Client**: Python 3 (using requests for HTTP calls and python-socketio for WebSocket) - Text-based command-line app for login, room ops, and grid input.
-- **Web Client**: HTML/CSS/JavaScript (vanilla JS, no framework) + Socket.IO client library - Browser app with a clickable 5x5 grid for moves.
-- **Mobile Client**: Kivy (Python-based UI framework) - Simple hybrid mobile app for Android (touch-based grid; easy to build APK).
+---
 
-**Rationale for Choices**: Python/Flask for readability and minimal boilerplate—quick to prototype services without complex setup (vs. Node.js async callbacks). Flask-SocketIO adds WebSockets with ~5 lines of code. Kivy for mobile keeps everything in Python (unified lang). This stack is specific/lightweight to avoid common similarities (e.g., no Java/Spring).
+## Project Overview
 
-## Project Structure
-- `services/`: Backend microservices (user-service, room-service, game-rules-service) – Each has `server.py` + deps.
-- `clients/`: 3 clients (cli-client with `main.py`; web-client with `index.html`/`script.js`; mobile-client with Kivy `main.py`).
+The goal is to implement a **two-person, turn-based Battleship game** using a **distributed microservices architecture**. This project focuses on **understanding and integrating microservices and WebSocket**, not commercial polish.
 
-## Service-to-Service APIs (HTTP/REST – My Custom Endpoints)
-Services communicate via simple POST/GET (JSON payloads). Example flows:
-- **Room Service → User Service**: GET `/users/{userId}` – Fetches player info for validation (e.g., status='available'). Response: `{"userId": 1, "username": "player1", "status": "available"}` or 404 error.
-- **Game Rules Service → Room Service**: GET `/rooms/{roomId}` – Checks if room is full/ongoing. Response: `{"roomId": 1, "player1Id": 1, "player2Id": 2, "status": "full"}` or 404 error.
-- Other: POST `/rooms` (create room) → `{"roomId": 1}`; POST `/rooms/{roomId}/join` { "userId": 1 } → `{"status": "full"}`.
+---
 
-Full schemas: All requests use `Content-Type: application/json`. Errors: `{"error": "Message"}` with 4xx status.
+## 1. Technical Requirements and Architecture
 
-## Client-Server APIs (WebSocket via Flask-SocketIO – JSON Format)
-All messages are JSON objects. Clients connect to `ws://localhost:3003` (Game Service). HTTP for setup (login/join via fetch/requests); WS for real-time (e.g., shot results).
+### Backend (Microservices)
+- **3 independent microservices** communicating via **HTTP**
+- **No database** — all data stored in **memory**
+- **Focus**: architecture, not data persistence
 
-**Client → Server Messages** (Emitted events):
-- `{"type": "join-room", "roomId": 1, "userId": 1}` – Joins room for broadcasts.
-- `{"type": "place-ship", "roomId": 1, "positions": [[1,1],[1,2]]}` – Places a ship (array of [row,col]).
-- `{"type": "fire-shot", "roomId": 1, "position": [2,3]}` – Fires at grid spot.
+| Service | Port | Responsibility |
+|--------|------|----------------|
+| **User Service** | `3001` | User registration/login (username-based) |
+| **Room Service** | `3002` | Create game rooms, connect players, manage status |
+| **Game Rules Service** | `3003` | Game logic: move control, hit/miss, turn switching, win detection |
 
-**Server → Client Messages** (Emitted to room):
-- `{"type": "status", "message": "Opponent joined – Place your ships!", "roomId": 1}` – Room updates.
-- `{"type": "move-update", "roomId": 1, "board": [["~","S","~"],["M","~","~"],["~","~","X"]], "turn": "Player2", "winner": null}` – Real-time grid sync (~=empty, S=ship, M=miss, X=hit). "winner": "Player1" or "Draw".
-- `{"type": "error", "message": "Invalid shot – Try again"}` – Validation feedback.
+> **Inter-service communication**: HTTP `requests.get()` / `post()`  
+> **Real-time client updates**: **WebSocket only in Game Rules Service**
 
-## Setup & Run (Basic – Full Code Coming)
-1. Install Python 3 + deps: `pip install flask flask-socketio requests python-socketio` (root or per folder).
-2. Start services: Open 3 terminals, `cd services/user-service && python server.py` (similar for others; logs show "Running on port 3001").
-3. Run CLI: `cd clients/cli-client && python main.py` – Prompts for username/room/move.
-4. Web: Open `clients/web-client/index.html` in browser (connects via JS).
-5. Mobile: `cd clients/mobile-client && kivy main.py` (or build APK).
+---
 
-## Architecture Overview
-[Placeholder: Add diagram.png later – Draw in Draw.io: User/Room/Game boxes (HTTP arrows between); CLI/Web/Mobile → WS arrows to Game Service.]
+### Clients and Communication
+- **3 different platforms** communicate via **WebSocket** with **Game Rules Service**
+- Real-time messages: move made, opponent joined, turn change, game over
 
-Repo submitted by Abdulkadir Salihu Abdulhamid. Full demo video + presentation to follow.
+| Client | Type | Tech |
+|-------|------|------|
+| **CLI Client** | Command Line | Python + `python-socketio` |
+| **Web Client** | Browser App | HTML, CSS, JavaScript + Socket.IO CDN |
+| **Mobile Client** | Touch App | **Kivy** (cross-platform Python GUI) |
+
+> All clients connect to **Game Rules Service (3003)** via **WebSocket**
+
+---
+
+## 2. Architecture Diagram (Mermaid)
+
+```mermaid
+graph TD
+    subgraph Clients
+        CLI[CLI Client<br>Python]
+        WEB[Web Client<br>HTML/JS]
+        MOB[Mobile Client<br>Kivy]
+    end
+
+    subgraph Microservices
+        U[User Service<br>3001<br>HTTP]
+        R[Room Service<br>3002<br>HTTP]
+        G[Game Rules Service<br>3003<br>HTTP + WebSocket]
+    end
+
+    CLI -->|WebSocket| G
+    WEB -->|WebSocket| G
+    MOB -->|WebSocket| G
+
+    G -->|HTTP GET /users/:id| U
+    G -->|HTTP GET /rooms/:id| R
+    R -->|HTTP GET /users/:id| U
+
+
+    3. API Documentation
+Service-to-Service APIs (HTTP)
+User Service (http://localhost:3001)
+
+POST /register
+Content-Type: application/json
+
+{ "username": "player1" }
+→ 200 OK
+{ "userId": 1, "username": "player1" }
+
+POST /login
+{ "username": "player1" }
+→ 200 OK
+{ "userId": 1, "username": "player1" }
+
+Room Service (http://localhost:3002)
+POST /rooms
+→ 201 Created
+{ "roomId": 1 }
+
+POST /rooms/1/join
+{ "userId": 1 }
+→ 200 OK
+{ "roomId": 1, "status": "waiting", "yourPosition": "player1" }
+
+Game Rules Service (http://localhost:3003)
+POST /games/1/start
+→ 200 OK
+{ "message": "Game started", "roomId": 1 }
+
+
+Client-Server WebSocket Messages (JSON)
+Event,Direction,Payload
+join-game,Client → Server,"{ ""roomId"": 1, ""userId"": 1 }"
+joined,Server → Client,"{ ""roomId"": 1, ""yourId"": 1 }"
+place-ships,Client → Server,"{ ""roomId"": 1, ""userId"": 1, ""positions"": [[0,0],[0,1],[2,2],[3,2]] }"
+ships-placed,Server → Client,"{ ""userId"": 1 }"
+game-ready,Server → Client,"{ ""turn"": 1 }"
+fire,Client → Server,"{ ""roomId"": 1, ""userId"": 1, ""x"": 2, ""y"": 3 }"
+move-update,Server → Client,"{ ""x"": 2, ""y"": 3, ""hit"": true, ""turn"": 2 }"
+game-over,Server → Client,"{ ""winner"": 1 }"
+
+4. Technologies Used
+Component,Technology
+Backend,"Python, Flask, Flask-SocketIO"
+CLI Client,"Python, python-socketio"
+Web Client,"HTML, CSS, JavaScript, Socket.IO (CDN)"
+Mobile Client,Kivy (Python GUI framework)
+Communication,"HTTP (services), WebSocket (clients)"
+State,In-memory (no DB)
+
+5. How to Run
+Step 1: Start Microservices (3 terminals)
+python services/user-service/server.py
+python services/room-service/server.py
+python services/game-rules-service/server.py
+
+Step 2: Run Clients
+CLI Client
+bashcd clients/cli-client
+python main.py
+Web Client
+
+Open clients/web-client/index.html in Chrome/Firefox
+Register → Create Room → Place 4 ships → Start Game
+
+Mobile Client (Kivy)
+bashcd clients/mobile-client
+pip install -r requirements.txt    # One time only
+python main.py
+
+distributed-two-player-battleship/
+├── services/
+│   ├── user-service/
+│   ├── room-service/
+│   └── game-rules-service/
+├── clients/
+│   ├── cli-client/
+│   ├── web-client/
+│   └── mobile-client/
+├── README.md
+└── .gitignore
