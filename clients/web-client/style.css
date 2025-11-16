@@ -1,0 +1,83 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.container { text-align: center; }
+h1 { font-size: 3rem; margin-bottom: 2rem; text-shadow: 0 0 10px rgba(255,255,255,0.5); }
+
+#login-screen input {
+  padding: 12px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 8px;
+  margin: 0 10px;
+}
+#login-screen button {
+  padding: 12px 20px;
+  font-size: 1.1rem;
+  background: #00d4ff;
+  color: black;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 10px;
+}
+#login-screen button:hover { background: #00b0d4; }
+
+.hidden { display: none; }
+
+.boards {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 30px 0;
+}
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 50px);
+  grid-template-rows: repeat(5, 50px);
+  gap: 2px;
+  background: #0f2027;
+  padding: 10px;
+  border-radius: 10px;
+}
+.cell {
+  width: 50px; height: 50px;
+  background: #203a43;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+}
+.cell.ship { background: #2c3e50; color: #00ff88; }
+.cell.hit { background: #e74c3c; color: white; }
+.cell.miss { background: #95a5a6; color: white; }
+.cell:hover { transform: scale(1.1); }
+
+#status {
+  margin: 20px;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+#start-game {
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  background: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 20px;
+}
+#start-game:hover { background: #219a52; }

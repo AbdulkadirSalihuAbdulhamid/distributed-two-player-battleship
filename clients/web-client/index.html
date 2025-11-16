@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Battleship Web</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>BATTLESHIP</h1>
+    <div id="login-screen">
+      <input type="text" id="username" placeholder="Username" />
+      <button onclick="register()">Register</button>
+      <button onclick="login()">Login</button>
+    </div>
+
+    <div id="lobby" class="hidden">
+      <button onclick="createRoom()">Create Room</button>
+      <div>or Join Room: <input type="number" id="roomId" /><button onclick="joinRoom()">Join</button></div>
+    </div>
+
+    <div id="game" class="hidden">
+      <div class="boards">
+        <div class="board-container">
+          <h3>Your Board</h3>
+          <div id="player-board" class="board"></div>
+        </div>
+        <div class="board-container">
+          <h3>Opponent Board</h3>
+          <div id="opponent-board" class="board"></div>
+        </div>
+      </div>
+      <div id="status">Waiting for opponent...</div>
+      <button id="start-game" onclick="startGame()" class="hidden">Start Game</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
