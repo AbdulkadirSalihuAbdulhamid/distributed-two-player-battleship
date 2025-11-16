@@ -1,12 +1,13 @@
 # Distributed Two-Player Battleship Game System
 
-A **real-time, distributed Battleship game** built with **microservices**, **HTTP**, and **WebSocket** — **no database**, **in-memory state**, **3 clients**, **full architecture**.
+A **real-time, turn-based Battleship game** using **microservices**, **HTTP**, and **WebSocket** — **no database**, **in-memory state**, **3 clients**, **full architecture**.
 
 ---
 
 ## Project Overview
 
-The goal is to implement a **two-person, turn-based Battleship game** using a **distributed microservices architecture**. This project focuses on **understanding and integrating microservices and WebSocket**, not commercial polish.
+The task is to implement a **simple, two-person, turn-based game** with a **distributed architecture**.  
+The main focus is on **understanding and integrating microservices and WebSocket technology**, rather than creating a commercial product.
 
 ---
 
@@ -14,16 +15,15 @@ The goal is to implement a **two-person, turn-based Battleship game** using a **
 
 ### Backend (Microservices)
 - **3 independent microservices** communicating via **HTTP**
-- **No database** — all data stored in **memory**
-- **Focus**: architecture, not data persistence
+- **No database** — data stored in **memory** (focus on architecture, not data management)
 
 | Service | Port | Responsibility |
 |--------|------|----------------|
-| **User Service** | `3001` | User registration/login (username-based) |
+| **User Service** | `3001` | User identification (username-based login/registration) |
 | **Room Service** | `3002` | Create game rooms, connect players, manage status |
 | **Game Rules Service** | `3003` | Game logic: move control, hit/miss, turn switching, win detection |
 
-> **Inter-service communication**: HTTP `requests.get()` / `post()`  
+> **Inter-service communication**: HTTP (`requests.get()` / `post()`)  
 > **Real-time client updates**: **WebSocket only in Game Rules Service**
 
 ---
@@ -32,11 +32,11 @@ The goal is to implement a **two-person, turn-based Battleship game** using a **
 - **3 different platforms** communicate via **WebSocket** with **Game Rules Service**
 - Real-time messages: move made, opponent joined, turn change, game over
 
-| Client | Type | Tech |
-|-------|------|------|
+| Client | Type | Technology |
+|-------|------|------------|
 | **CLI Client** | Command Line | Python + `python-socketio` |
 | **Web Client** | Browser App | HTML, CSS, JavaScript + Socket.IO CDN |
-| **Mobile Client** | Touch App | **Kivy** (cross-platform Python GUI) |
+| **Mobile Client** | Touch App | **Kivy** (Python GUI framework) |
 
 > All clients connect to **Game Rules Service (3003)** via **WebSocket**
 
@@ -66,51 +66,38 @@ graph TD
     G -->|HTTP GET /rooms/:id| R
     R -->|HTTP GET /users/:id| U
 
-
-    3. API Documentation
+   3. API Documentation
 Service-to-Service APIs (HTTP)
 User Service (http://localhost:3001)
-
-POST /register
+httpPOST /register
 Content-Type: application/json
 
 { "username": "player1" }
 → 200 OK
 { "userId": 1, "username": "player1" }
-
-POST /login
+httpPOST /login
 { "username": "player1" }
 → 200 OK
 { "userId": 1, "username": "player1" }
-
 Room Service (http://localhost:3002)
-POST /rooms
+httpPOST /rooms
 → 201 Created
 { "roomId": 1 }
-
-POST /rooms/1/join
+httpPOST /rooms/1/join
 { "userId": 1 }
 → 200 OK
 { "roomId": 1, "status": "waiting", "yourPosition": "player1" }
-
 Game Rules Service (http://localhost:3003)
-POST /games/1/start
+httpPOST /games/1/start
 → 200 OK
 { "message": "Game started", "roomId": 1 }
 
-
 Client-Server WebSocket Messages (JSON)
-Event,Direction,Payload
-join-game,Client → Server,"{ ""roomId"": 1, ""userId"": 1 }"
-joined,Server → Client,"{ ""roomId"": 1, ""yourId"": 1 }"
-place-ships,Client → Server,"{ ""roomId"": 1, ""userId"": 1, ""positions"": [[0,0],[0,1],[2,2],[3,2]] }"
-ships-placed,Server → Client,"{ ""userId"": 1 }"
-game-ready,Server → Client,"{ ""turn"": 1 }"
-fire,Client → Server,"{ ""roomId"": 1, ""userId"": 1, ""x"": 2, ""y"": 3 }"
-move-update,Server → Client,"{ ""x"": 2, ""y"": 3, ""hit"": true, ""turn"": 2 }"
-game-over,Server → Client,"{ ""winner"": 1 }"
+
+EventDirectionPayloadjoin-gameClient → Server{ "roomId": 1, "userId": 1 }joinedServer → Client{ "roomId": 1, "yourId": 1 }place-shipsClient → Server{ "roomId": 1, "userId": 1, "positions": [[0,0],[0,1],[2,2],[3,2]] }ships-placedServer → Client{ "userId": 1 }game-readyServer → Client{ "turn": 1 }fireClient → Server{ "roomId": 1, "userId": 1, "x": 2, "y": 3 }move-updateServer → Client{ "x": 2, "y": 3, "hit": true, "turn": 2 }game-overServer → Client{ "winner": 1 }
 
 4. Technologies Used
+
 Component,Technology
 Backend,"Python, Flask, Flask-SocketIO"
 CLI Client,"Python, python-socketio"
@@ -121,7 +108,7 @@ State,In-memory (no DB)
 
 5. How to Run
 Step 1: Start Microservices (3 terminals)
-python services/user-service/server.py
+bashpython services/user-service/server.py
 python services/room-service/server.py
 python services/game-rules-service/server.py
 
@@ -136,10 +123,11 @@ Register → Create Room → Place 4 ships → Start Game
 
 Mobile Client (Kivy)
 bashcd clients/mobile-client
-pip install -r requirements.txt    # One time only
+pip install -r requirements.txt    # Or: pip install kivy==2.3.0 python-socketio requests
 python main.py
 
-distributed-two-player-battleship/
+6. Project Structure
+textdistributed-two-player-battleship/
 ├── services/
 │   ├── user-service/
 │   ├── room-service/
